@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CrosshairApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="CrosshairApp.Views.ProfilesView"
+             x:DataType="vm:ProfilesViewModel">
+    <Design.DataContext>
+        <vm:ProfilesViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto, *">
+        <StackPanel Orientation="Horizontal" Spacing="10" Margin="10">
+            <Button Content="Add Profile" Command="{Binding AddGameProfileCommand}" />
+            <Button Content="Save Profile" Command="{Binding SaveGameProfileCommand}" />
+            <Button Content="Delete Profile" Command="{Binding DeleteGameProfileCommand}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="200, *">
+            <ListBox ItemsSource="{Binding GameProfiles}" SelectedItem="{Binding SelectedGameProfile}" DisplayMemberBinding="{Binding GameName}" />
+
+            <StackPanel Grid.Column="1" Margin="10" IsVisible="{Binding SelectedGameProfile, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="Game Name:" />
+                <TextBox Text="{Binding SelectedGameProfile.GameName}" Margin="0,0,0,10" />
+
+                <TextBlock Text="Process Name:" />
+                <TextBox Text="{Binding SelectedGameProfile.ProcessName}" Margin="0,0,0,10" />
+
+                <TextBlock Text="Associated Preset:" />
+                <ComboBox ItemsSource="{Binding AllPresets}" 
+                          SelectedItem="{Binding SelectedGameProfile.SelectedPreset, Mode=TwoWay}"
+                          DisplayMemberBinding="{Binding Name}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

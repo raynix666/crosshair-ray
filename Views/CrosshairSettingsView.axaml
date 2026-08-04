@@ -1,0 +1,67 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CrosshairApp.ViewModels"
+             xmlns:models="using:CrosshairApp.Models"
+             xmlns:controls="using:CrosshairApp.Controls"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="800"
+             x:Class="CrosshairApp.Views.CrosshairSettingsView"
+             x:DataType="vm:CrosshairSettingsViewModel">
+    <Design.DataContext>
+        <vm:CrosshairSettingsViewModel />
+    </Design.DataContext>
+    <ScrollViewer>
+        <StackPanel Spacing="10" Margin="20">
+            <TextBlock Text="Crosshair Customization" FontSize="24" FontWeight="Bold" Margin="0,0,0,10" />
+
+            <!-- Style -->
+            <TextBlock Text="Style:" FontWeight="SemiBold" />
+            <ComboBox SelectedItem="{Binding Settings.Style, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                <ComboBox.Items>
+                    <models:CrosshairStyle>Cross</models:CrosshairStyle>
+                    <models:CrosshairStyle>Dot</models:CrosshairStyle>
+                    <models:CrosshairStyle>Circle</models:CrosshairStyle>
+                </ComboBox.Items>
+            </ComboBox>
+
+            <!-- Color -->
+            <TextBlock Text="Color:" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <controls:ColorPickerButton SelectedColor="{Binding Settings.Color, Mode=TwoWay}" HorizontalAlignment="Left" />
+
+            <!-- RGB Animated Mode -->
+            <CheckBox Content="RGB Animated" IsChecked="{Binding Settings.RgbAnimated, Mode=TwoWay}" Margin="0,10,0,0" />
+
+            <!-- Size -->
+            <TextBlock Text="Size:" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Slider Value="{Binding Settings.Size, Mode=TwoWay}" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <TextBlock Text="{Binding Settings.Size}" HorizontalAlignment="Right" />
+
+            <!-- Thickness -->
+            <TextBlock Text="Thickness:" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Slider Value="{Binding Settings.Thickness, Mode=TwoWay}" Minimum="1" Maximum="20" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <TextBlock Text="{Binding Settings.Thickness}" HorizontalAlignment="Right" />
+
+            <!-- Opacity -->
+            <TextBlock Text="Opacity:" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Slider Value="{Binding Settings.Opacity, Mode=TwoWay}" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1" />
+            <TextBlock Text="{Binding Settings.Opacity, StringFormat=P0}" HorizontalAlignment="Right" />
+
+            <!-- Rotation -->
+            <TextBlock Text="Rotation:" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Slider Value="{Binding Settings.Rotation, Mode=TwoWay}" Minimum="0" Maximum="360" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <TextBlock Text="{Binding Settings.Rotation}" HorizontalAlignment="Right" />
+
+            <!-- Gap -->
+            <TextBlock Text="Gap:" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Slider Value="{Binding Settings.Gap, Mode=TwoWay}" Minimum="0" Maximum="50" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <TextBlock Text="{Binding Settings.Gap}" HorizontalAlignment="Right" />
+
+
+
+            <!-- Dot in the center -->
+            <CheckBox Content="Dot in Center" IsChecked="{Binding Settings.DotEnabled, Mode=TwoWay}" Margin="0,10,0,0" />
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

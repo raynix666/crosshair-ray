@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CrosshairApp.ViewModels"
+             xmlns:views="using:CrosshairApp.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="CrosshairApp.Views.PresetsView"
+             x:DataType="vm:PresetsViewModel">
+    <Design.DataContext>
+        <vm:PresetsViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto, *">
+        <StackPanel Orientation="Horizontal" Spacing="10" Margin="10">
+            <Button Content="Add Preset" Command="{Binding AddPresetCommand}" />
+            <Button Content="Save Preset" Command="{Binding SavePresetCommand}" />
+            <Button Content="Delete Preset" Command="{Binding DeletePresetCommand}" />
+            <Button Content="Import" Command="{Binding ImportPresetCommand}" />
+            <Button Content="Export" Command="{Binding ExportPresetCommand}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="200, *">
+            <ListBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberBinding="{Binding Name}" />
+            <ContentControl Grid.Column="1">
+                <views:CrosshairSettingsView DataContext="{Binding SelectedPresetViewModel}" />
+            </ContentControl>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CrosshairApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="CrosshairApp.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <Design.DataContext>
+        <vm:SettingsViewModel />
+    </Design.DataContext>
+    <ScrollViewer>
+        <StackPanel Spacing="20" Margin="20">
+            <TextBlock Text="Application Settings" FontSize="24" FontWeight="Bold" Foreground="White" />
+
+            <Border Background="#1a1a2e" Padding="20" CornerRadius="8">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="Launch at Windows Startup" FontSize="16" FontWeight="SemiBold" Foreground="White" />
+                        <TextBlock Text="Automatically start CrosshairApp when you log into Windows" FontSize="12" Foreground="#aaaaaa" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding AppSettings.LaunchAtStartup, Mode=TwoWay}" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

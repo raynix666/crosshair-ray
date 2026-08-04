@@ -1,0 +1,16 @@
+## .NET
+bin/
+obj/
+publish/
+*.user
+*.suo
+.vs/
+*.pdb
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Rider/VS
+.idea/
+*.DotSettings.user

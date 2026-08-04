@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="using:CrosshairApp.Controls"
+             mc:Ignorable="d" d:DesignWidth="140" d:DesignHeight="36"
+             x:Class="CrosshairApp.Controls.ColorPickerButton"
+             x:DataType="controls:ColorPickerButton">
+    <Button x:Name="PART_Button"
+            Width="140" Height="36"
+            BorderBrush="#444444" BorderThickness="1"
+            CornerRadius="4"
+            Padding="8,4"
+            Background="#252538"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch">
+        <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+                <Border Width="300" Padding="10">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Quick Preset Colors" FontWeight="Bold" Foreground="White" FontSize="13" />
+                        
+                        <!-- Color Palette Grid -->
+                        <UniformGrid Columns="6" Rows="2">
+                            <Button Width="36" Height="36" Background="Red" Margin="2" Click="OnPresetColorClick" Tag="Red" ToolTip.Tip="Red" />
+                            <Button Width="36" Height="36" Background="#00FF00" Margin="2" Click="OnPresetColorClick" Tag="#00FF00" ToolTip.Tip="Lime Green" />
+                            <Button Width="36" Height="36" Background="#00FFFF" Margin="2" Click="OnPresetColorClick" Tag="#00FFFF" ToolTip.Tip="Cyan" />
+                            <Button Width="36" Height="36" Background="#007ACC" Margin="2" Click="OnPresetColorClick" Tag="#007ACC" ToolTip.Tip="Deep Sky Blue" />
+                            <Button Width="36" Height="36" Background="Yellow" Margin="2" Click="OnPresetColorClick" Tag="Yellow" ToolTip.Tip="Yellow" />
+                            <Button Width="36" Height="36" Background="Magenta" Margin="2" Click="OnPresetColorClick" Tag="Magenta" ToolTip.Tip="Magenta" />
+
+                            <Button Width="36" Height="36" Background="Orange" Margin="2" Click="OnPresetColorClick" Tag="Orange" ToolTip.Tip="Orange" />
+                            <Button Width="36" Height="36" Background="Purple" Margin="2" Click="OnPresetColorClick" Tag="Purple" ToolTip.Tip="Purple" />
+                            <Button Width="36" Height="36" Background="Pink" Margin="2" Click="OnPresetColorClick" Tag="Pink" ToolTip.Tip="Pink" />
+                            <Button Width="36" Height="36" Background="White" Margin="2" Click="OnPresetColorClick" Tag="White" ToolTip.Tip="White" />
+                            <Button Width="36" Height="36" Background="Gray" Margin="2" Click="OnPresetColorClick" Tag="Gray" ToolTip.Tip="Gray" />
+                            <Button Width="36" Height="36" Background="Black" Margin="2" Click="OnPresetColorClick" Tag="Black" ToolTip.Tip="Black" />
+                        </UniformGrid>
+
+                        <Separator Background="#444444" Margin="0,5" />
+                        <TextBlock Text="Custom Color Spectrum" FontWeight="Bold" Foreground="White" FontSize="13" />
+
+                        <!-- Full Avalonia ColorPicker -->
+                        <ColorPicker Color="{Binding SelectedColor, RelativeSource={RelativeSource AncestorType=controls:ColorPickerButton}, Mode=TwoWay}"
+                                     IsAlphaEnabled="True"
+                                     HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Border>
+            </Flyout>
+        </Button.Flyout>
+        <Grid ColumnDefinitions="24, *">
+            <Border Grid.Column="0"
+                    x:Name="PART_ColorSwatch"
+                    CornerRadius="3"
+                    BorderBrush="#888888"
+                    BorderThickness="1"
+                    Background="{Binding SelectedColor, RelativeSource={RelativeSource AncestorType=controls:ColorPickerButton}}" />
+            <TextBlock Grid.Column="1"
+                       Text="Pick Color"
+                       Foreground="White"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Margin="6,0,0,0"/>
+        </Grid>
+    </Button>
+</UserControl>

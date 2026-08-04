@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CrosshairApp.ViewModels"
+        xmlns:overlay="using:CrosshairApp.Overlay"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:Class="CrosshairApp.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="CrosshairApp"
+        Width="1000"
+        Height="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#1a1a2e">
+
+    <Grid ColumnDefinitions="180, *, 260">
+
+        <!-- Sidebar Navigation -->
+        <Border Grid.Column="0" Background="#16213e" Padding="0,20,0,0">
+            <StackPanel Spacing="6" Margin="10,0">
+                <TextBlock Text="☩ CrosshairApp"
+                           FontSize="16" FontWeight="Bold"
+                           Foreground="#e94560"
+                           Margin="8,0,0,20"/>
+
+                <Button Content="Crosshair" Command="{Binding NavigateCommand}" CommandParameter="Crosshair"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Padding="12,10" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                <Button Content="Settings" Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Padding="12,10" Background="Transparent" Foreground="White" BorderThickness="0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Border Grid.Column="1" Background="#0f3460" Padding="20">
+            <ContentControl Content="{Binding CurrentPage}" />
+        </Border>
+
+        <!-- Live Crosshair Preview Panel -->
+        <Border Grid.Column="2" Background="#1a1a2e" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Live Preview"
+                           FontSize="14" FontWeight="Bold"
+                           Foreground="#e94560"
+                           HorizontalAlignment="Center"
+                           Margin="0,10,0,10"/>
+
+                <Border Background="#000000"
+                        Width="220" Height="220"
+                        CornerRadius="4"
+                        HorizontalAlignment="Center">
+                    <overlay:CrosshairDrawing
+                        Settings="{Binding CurrentCrosshairSettings}"
+                        Width="220" Height="220"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                </Border>
+
+                <TextBlock Text="Adjust settings on the left to see changes live"
+                           FontSize="11"
+                           Foreground="#aaaaaa"
+                           HorizontalAlignment="Center"
+                           Margin="0,8,0,0"
+                           TextWrapping="Wrap"/>
+
+                <Button Content="Toggle Overlay on Screen"
+                        Command="{Binding ToggleOverlayCommand}"
+                        HorizontalAlignment="Center"
+                        Margin="0,24,0,0"
+                        Padding="14,10"
+                        Background="#e94560"
+                        Foreground="White"
+                        FontWeight="Bold"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
