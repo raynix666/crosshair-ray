@@ -22,8 +22,20 @@
                     <models:CrosshairStyle>Cross</models:CrosshairStyle>
                     <models:CrosshairStyle>Dot</models:CrosshairStyle>
                     <models:CrosshairStyle>Circle</models:CrosshairStyle>
+                    <models:CrosshairStyle>TShape</models:CrosshairStyle>
+                    <models:CrosshairStyle>Square</models:CrosshairStyle>
+                    <models:CrosshairStyle>CustomImage</models:CrosshairStyle>
                 </ComboBox.Items>
             </ComboBox>
+
+            <!-- Custom Image Picker -->
+            <StackPanel Margin="0,10,0,0" Spacing="6">
+                <TextBlock Text="Custom Crosshair Image:" FontWeight="SemiBold" />
+                <Grid ColumnDefinitions="*, Auto">
+                    <TextBox Grid.Column="0" Text="{Binding Settings.CustomImagePath, Mode=TwoWay}" Watermark="Select image file..." IsReadOnly="True" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseCustomImageCommand}" Margin="8,0,0,0" Padding="12,6"/>
+                </Grid>
+            </StackPanel>
 
             <!-- Color -->
             <TextBlock Text="Color:" FontWeight="SemiBold" Margin="0,10,0,0" />
@@ -57,10 +69,13 @@
             <Slider Value="{Binding Settings.Gap, Mode=TwoWay}" Minimum="0" Maximum="50" TickFrequency="1" IsSnapToTickEnabled="True" />
             <TextBlock Text="{Binding Settings.Gap}" HorizontalAlignment="Right" />
 
-
-
             <!-- Dot in the center -->
             <CheckBox Content="Dot in Center" IsChecked="{Binding Settings.DotEnabled, Mode=TwoWay}" Margin="0,10,0,0" />
+            
+            <!-- Center Dot Size -->
+            <TextBlock Text="Center Dot Size:" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Slider Value="{Binding Settings.CenterDotSize, Mode=TwoWay}" Minimum="1" Maximum="20" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <TextBlock Text="{Binding Settings.CenterDotSize}" HorizontalAlignment="Right" />
 
         </StackPanel>
     </ScrollViewer>

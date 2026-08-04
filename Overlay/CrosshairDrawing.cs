@@ -1,12 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Platform;
 using Avalonia.Visuals.Platform;
 using Avalonia.Threading;
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using CrosshairApp.Models;
 using CrosshairApp.Helpers;
@@ -23,6 +25,9 @@ namespace CrosshairApp.Overlay
             get => GetValue(SettingsProperty);
             set => SetValue(SettingsProperty, value);
         }
+
+        private Bitmap? _cachedCustomBitmap;
+        private string _cachedImagePath = string.Empty;
 
         public CrosshairDrawing()
         {
@@ -47,7 +52,7 @@ namespace CrosshairApp.Overlay
             var pen = new Pen(brush, Settings.Thickness) { LineCap = PenLineCap.Flat };
 
             // Apply outline if enabled
-            if (Settings.OutlineEnabled)
+            if (Settings.OutlineEnabled && Settings.Style != CrosshairStyle.CustomImage)
             {
                 var outlineBrush = new SolidColorBrush(Settings.OutlineColor) { Opacity = Settings.Opacity };
                 var outlinePen = new Pen(outlineBrush, Settings.Thickness + Settings.OutlineThickness * 2) { LineCap = PenLineCap.Flat };
@@ -61,7 +66,7 @@ namespace CrosshairApp.Overlay
             // Draw dot if enabled
             if (Settings.DotEnabled || Settings.Style == CrosshairStyle.Dot)
             {
-                var dotRadius = Math.Max(2, Settings.Thickness);
+                var dotRadius = Math.Max(1, Settings.CenterDotSize > 0 ? Settings.CenterDotSize / 2 : Settings.Thickness / 2);
                 context.DrawEllipse(brush, null, new Point(centerX, centerY), dotRadius, dotRadius);
             }
         }
@@ -115,6 +120,27 @@ namespace CrosshairApp.Overlay
             Dispatcher.UIThread.Post(InvalidateVisual);
         }
 
+        private Bitmap? GetCustomImageBitmap(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return null;
+
+            if (_cachedImagePath != path)
+            {
+                try
+                {
+                    _cachedCustomBitmap?.Dispose();
+                    _cachedCustomBitmap = new Bitmap(path);
+                    _cachedImagePath = path;
+                }
+                catch
+                {
+                    _cachedCustomBitmap = null;
+                }
+            }
+            return _cachedCustomBitmap;
+        }
+
         private void DrawCrosshair(DrawingContext context, Pen pen, double centerX, double centerY)
         {
             var halfSize = Settings.Size / 2;
@@ -134,11 +160,32 @@ namespace CrosshairApp.Overlay
                         context.DrawLine(pen, new Point(centerX, centerY - halfSize - gap), new Point(centerX, centerY - gap));
                         context.DrawLine(pen, new Point(centerX, centerY + gap), new Point(centerX, centerY + halfSize + gap));
                         break;
+                    case CrosshairStyle.TShape:
+                        // Horizontal line
+                        context.DrawLine(pen, new Point(centerX - halfSize - gap, centerY), new Point(centerX - gap, centerY));
+                        context.DrawLine(pen, new Point(centerX + gap, centerY), new Point(centerX + halfSize + gap, centerY));
+                        // Bottom vertical line only (no top arm)
+                        context.DrawLine(pen, new Point(centerX, centerY + gap), new Point(centerX, centerY + halfSize + gap));
+                        break;
+                    case CrosshairStyle.Square:
+                        var squareSize = Math.Max(2, Settings.Size);
+                        var rect = new Rect(centerX - squareSize / 2, centerY - squareSize / 2, squareSize, squareSize);
+                        context.DrawRectangle(null, pen, rect);
+                        break;
                     case CrosshairStyle.Dot:
                         // Dot is handled separately in Render
                         break;
                     case CrosshairStyle.Circle:
                         context.DrawEllipse(null, pen, new Point(centerX, centerY), Math.Max(2, halfSize), Math.Max(2, halfSize));
+                        break;
+                    case CrosshairStyle.CustomImage:
+                        var bitmap = GetCustomImageBitmap(Settings.CustomImagePath);
+                        if (bitmap != null)
+                        {
+                            var imgSize = Math.Max(4, Settings.Size);
+                            var destRect = new Rect(centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+                            context.DrawImage(bitmap, destRect);
+                        }
                         break;
                 }
             }

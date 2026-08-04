@@ -7,11 +7,18 @@ namespace CrosshairApp.Models
     public class AppSettings : INotifyPropertyChanged
     {
         private bool _launchAtStartup = false;
+        private bool _minimizeToTrayOnClose = true;
 
         public bool LaunchAtStartup
         {
             get => _launchAtStartup;
             set => SetProperty(ref _launchAtStartup, value);
+        }
+
+        public bool MinimizeToTrayOnClose
+        {
+            get => _minimizeToTrayOnClose;
+            set => SetProperty(ref _minimizeToTrayOnClose, value);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

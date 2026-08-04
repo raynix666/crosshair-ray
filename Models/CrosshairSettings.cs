@@ -101,6 +101,21 @@ namespace CrosshairApp.Models
             set => SetProperty(ref _dotEnabled, value);
         }
 
+        private double _centerDotSize = 2;
+        private string _customImagePath = string.Empty;
+
+        public double CenterDotSize
+        {
+            get => _centerDotSize;
+            set => SetProperty(ref _centerDotSize, value);
+        }
+
+        public string CustomImagePath
+        {
+            get => _customImagePath;
+            set => SetProperty(ref _customImagePath, value);
+        }
+
         public CrosshairStyle Style
         {
             get => _style;
@@ -131,6 +146,9 @@ namespace CrosshairApp.Models
     {
         Cross,
         Dot,
-        Circle
+        Circle,
+        TShape,
+        Square,
+        CustomImage
     }
 }
