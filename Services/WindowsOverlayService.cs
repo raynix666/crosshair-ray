@@ -22,7 +22,7 @@ namespace CrosshairApp.Services
         {
             _topmostEnforceTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(500)
+                Interval = TimeSpan.FromMilliseconds(50)
             };
             _topmostEnforceTimer.Tick += (s, e) => EnsureTopmost();
         }
