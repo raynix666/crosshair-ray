@@ -7,7 +7,6 @@ using CrosshairApp.ViewModels;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace CrosshairApp.Services
 {
@@ -15,8 +14,18 @@ namespace CrosshairApp.Services
     {
         private OverlayWindow? _overlayWindow;
         private CrosshairSettings? _currentSettings;
+        private DispatcherTimer? _topmostEnforceTimer;
 
         public bool IsOverlayVisible => _overlayWindow != null && _overlayWindow.IsVisible;
+
+        public WindowsOverlayService()
+        {
+            _topmostEnforceTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
+            _topmostEnforceTimer.Tick += (s, e) => EnsureTopmost();
+        }
 
         public void ShowOverlay(CrosshairSettings settings)
         {
@@ -43,11 +52,14 @@ namespace CrosshairApp.Services
                     ApplyWin32Styles(_overlayWindow);
                     CenterOverlayOnPrimaryScreen();
                 }
+
+                _topmostEnforceTimer?.Start();
             });
         }
 
         public void HideOverlay()
         {
+            _topmostEnforceTimer?.Stop();
             if (_overlayWindow != null)
             {
                 Dispatcher.UIThread.InvokeAsync(() =>
@@ -59,6 +71,7 @@ namespace CrosshairApp.Services
 
         public void CloseOverlay()
         {
+            _topmostEnforceTimer?.Stop();
             if (_overlayWindow != null)
             {
                 var window = _overlayWindow;
@@ -111,6 +124,18 @@ namespace CrosshairApp.Services
             }
         }
 
+        private void EnsureTopmost()
+        {
+            if (_overlayWindow != null && _overlayWindow.IsVisible && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var platformHandle = _overlayWindow.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+                if (platformHandle != IntPtr.Zero)
+                {
+                    SetWindowPos(platformHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+                }
+            }
+        }
+
         private void ApplyWin32Styles(Window window)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -119,17 +144,27 @@ namespace CrosshairApp.Services
                 if (platformHandle != IntPtr.Zero)
                 {
                     int extendedStyle = GetWindowLong(platformHandle, GWL_EXSTYLE);
-                    // WS_EX_LAYERED (0x80000) | WS_EX_TRANSPARENT (0x20) | WS_EX_TOOLWINDOW (0x80)
-                    extendedStyle |= GWL_EXSTYLE_LAYERED | GWL_EXSTYLE_TRANSPARENT | 0x80;
+                    // WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST
+                    extendedStyle |= WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST;
                     SetWindowLong(platformHandle, GWL_EXSTYLE, extendedStyle);
+
+                    SetWindowPos(platformHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
                 }
             }
         }
 
         private const int GWL_EXSTYLE = -20;
-        private const int GWL_EXSTYLE_LAYERED = 0x80000;
-        private const int GWL_EXSTYLE_TRANSPARENT = 0x20;
-        private const int LWA_ALPHA = 0x2;
+        private const int WS_EX_TOPMOST = 0x00000008;
+        private const int WS_EX_TRANSPARENT = 0x00000020;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+        private const int WS_EX_LAYERED = 0x00080000;
+        private const int WS_EX_NOACTIVATE = 0x08000000;
+
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        private const uint SWP_NOSIZE = 0x0001;
+        private const uint SWP_NOMOVE = 0x0002;
+        private const uint SWP_NOACTIVATE = 0x0010;
+        private const uint SWP_SHOWWINDOW = 0x0040;
 
         [DllImport("user32.dll")]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -137,7 +172,7 @@ namespace CrosshairApp.Services
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
-        [DllImport("user32.dll")]
-        private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
     }
 }
