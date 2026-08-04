@@ -57,6 +57,19 @@ namespace CrosshairApp.Services
             }
         }
 
+        public void CloseOverlay()
+        {
+            if (_overlayWindow != null)
+            {
+                var window = _overlayWindow;
+                _overlayWindow = null;
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    window.Close();
+                });
+            }
+        }
+
         public void UpdateOverlaySettings(CrosshairSettings settings)
         {
             _currentSettings = settings;
