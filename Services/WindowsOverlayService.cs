@@ -5,7 +5,6 @@ using CrosshairApp.Models;
 using CrosshairApp.Overlay;
 using CrosshairApp.ViewModels;
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace CrosshairApp.Services
@@ -16,6 +15,13 @@ namespace CrosshairApp.Services
         private CrosshairSettings? _currentSettings;
         private DispatcherTimer? _topmostEnforceTimer;
 
+        // Track last known screen size so we reposition when resolution changes
+        private int _lastScreenWidth = 0;
+        private int _lastScreenHeight = 0;
+
+        // Overlay size is fixed at 300x300 but centered on actual screen resolution
+        private const int OverlaySize = 300;
+
         public bool IsOverlayVisible => _overlayWindow != null && _overlayWindow.IsVisible;
 
         public WindowsOverlayService()
@@ -24,7 +30,7 @@ namespace CrosshairApp.Services
             {
                 Interval = TimeSpan.FromMilliseconds(50)
             };
-            _topmostEnforceTimer.Tick += (s, e) => EnsureTopmost();
+            _topmostEnforceTimer.Tick += (s, e) => EnsureTopmostAndReposition();
         }
 
         public void ShowOverlay(CrosshairSettings settings)
@@ -110,29 +116,69 @@ namespace CrosshairApp.Services
 
         private void CenterOverlayOnPrimaryScreen()
         {
-            if (_overlayWindow != null)
-            {
-                var primaryScreen = _overlayWindow.Screens.Primary;
-                if (primaryScreen != null)
-                {
-                    var screen = primaryScreen.WorkingArea;
-                    var x = screen.X + (screen.Width - 300) / 2;
-                    var y = screen.Y + (screen.Height - 300) / 2;
+            if (_overlayWindow == null) return;
 
-                    SetOverlayPosition(x, y, 300, 300);
-                }
+            // Get actual screen pixel resolution using Win32 (works in exclusive fullscreen)
+            int screenW = GetSystemMetrics(SM_CXSCREEN);
+            int screenH = GetSystemMetrics(SM_CYSCREEN);
+
+            // Fallback to Avalonia screen bounds if Win32 returns 0
+            if (screenW <= 0 || screenH <= 0)
+            {
+                var primary = _overlayWindow.Screens.Primary;
+                if (primary == null) return;
+                screenW = primary.Bounds.Width;
+                screenH = primary.Bounds.Height;
             }
+
+            _lastScreenWidth = screenW;
+            _lastScreenHeight = screenH;
+
+            int x = (screenW - OverlaySize) / 2;
+            int y = (screenH - OverlaySize) / 2;
+
+            _overlayWindow.Position = new PixelPoint(x, y);
+            _overlayWindow.Width = OverlaySize;
+            _overlayWindow.Height = OverlaySize;
         }
 
-        private void EnsureTopmost()
+        private void EnsureTopmostAndReposition()
         {
-            if (_overlayWindow != null && _overlayWindow.IsVisible && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (_overlayWindow == null || !_overlayWindow.IsVisible) return;
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+
+            // Check if screen resolution has changed
+            int screenW = GetSystemMetrics(SM_CXSCREEN);
+            int screenH = GetSystemMetrics(SM_CYSCREEN);
+
+            if (screenW > 0 && screenH > 0 &&
+                (screenW != _lastScreenWidth || screenH != _lastScreenHeight))
             {
+                // Resolution changed — reposition to new center
+                _lastScreenWidth = screenW;
+                _lastScreenHeight = screenH;
+
+                int x = (screenW - OverlaySize) / 2;
+                int y = (screenH - OverlaySize) / 2;
+
                 var platformHandle = _overlayWindow.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
                 if (platformHandle != IntPtr.Zero)
                 {
-                    SetWindowPos(platformHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+                    // Move AND keep topmost in one call
+                    SetWindowPos(platformHandle, HWND_TOPMOST,
+                        x, y, OverlaySize, OverlaySize,
+                        SWP_NOACTIVATE | SWP_SHOWWINDOW);
                 }
+                return;
+            }
+
+            // No resolution change — just keep on top
+            var handle = _overlayWindow.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+            if (handle != IntPtr.Zero)
+            {
+                SetWindowPos(handle, HWND_TOPMOST,
+                    0, 0, 0, 0,
+                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
             }
         }
 
@@ -144,27 +190,34 @@ namespace CrosshairApp.Services
                 if (platformHandle != IntPtr.Zero)
                 {
                     int extendedStyle = GetWindowLong(platformHandle, GWL_EXSTYLE);
-                    // WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST
                     extendedStyle |= WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST;
                     SetWindowLong(platformHandle, GWL_EXSTYLE, extendedStyle);
 
-                    SetWindowPos(platformHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+                    SetWindowPos(platformHandle, HWND_TOPMOST,
+                        0, 0, 0, 0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
                 }
             }
         }
 
-        private const int GWL_EXSTYLE = -20;
-        private const int WS_EX_TOPMOST = 0x00000008;
+        private const int GWL_EXSTYLE    = -20;
+        private const int WS_EX_TOPMOST  = 0x00000008;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_TOOLWINDOW = 0x00000080;
-        private const int WS_EX_LAYERED = 0x00080000;
+        private const int WS_EX_LAYERED  = 0x00080000;
         private const int WS_EX_NOACTIVATE = 0x08000000;
 
         private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        private const uint SWP_NOSIZE = 0x0001;
-        private const uint SWP_NOMOVE = 0x0002;
+        private const uint SWP_NOSIZE     = 0x0001;
+        private const uint SWP_NOMOVE     = 0x0002;
         private const uint SWP_NOACTIVATE = 0x0010;
         private const uint SWP_SHOWWINDOW = 0x0040;
+
+        private const int SM_CXSCREEN = 0;
+        private const int SM_CYSCREEN = 1;
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
 
         [DllImport("user32.dll")]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
@@ -173,6 +226,7 @@ namespace CrosshairApp.Services
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+            int X, int Y, int cx, int cy, uint uFlags);
     }
 }
